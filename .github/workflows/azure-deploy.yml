@@ -8,38 +8,57 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-    
+
     - name: Create .env file
       run: |
         echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
         echo "PORT=3002" >> .env
         echo "NODE_ENV=production" >> .env
-        
+
     - name: Install dependencies
       run: npm ci
-      
+
     - name: Generate Prisma Client
       run: npx prisma generate
-      
+
     - name: Build
       run: npm run build
-      
+
+    - name: Set environment variables on Azure
+      uses: Azure/appservice-settings@v1
+      with:
+        app-name: mural-testemunhos  # substitua pelo nome exato do seu App Service
+        app-settings-json: |
+          [
+            {
+              "name": "DATABASE_URL",
+              "value": "${{ secrets.DATABASE_URL }}"
+            },
+            {
+              "name": "JWT_SECRET",
+              "value": "${{ secrets.JWT_SECRET }}"
+            },
+            {
+              "name": "PORT",
+              "value": "3002"
+            },
+            {
+              "name": "NODE_ENV",
+              "value": "production"
+            }
+          ]
+
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
         package: .
-        app-settings: |
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          PORT=3002
-          NODE_ENV=production 
