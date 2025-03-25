@@ -30,7 +30,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
 # Expor a porta da aplicação
-EXPOSE 3002
+EXPOSE 3001
 
 # Comando para iniciar a aplicação
 CMD ["npm", "run", "start:prod"] 
