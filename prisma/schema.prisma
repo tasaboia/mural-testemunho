@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  nome          String
+  imagemPerfil  String?
+  role          Role          @default(USER)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  testemunhos   Testemunho[]
+  amens         Amem[]
+
+  @@map("usuarios")
+}
+
+model Testemunho {
+  id            String        @id @default(uuid())
+  titulo        String
+  conteudo      String
+  anonimo       Boolean       @default(false)
+  aprovado      Boolean       @default(false)
+  categoria     Categoria
+  autorId       String?
+  autor         Usuario?      @relation(fields: [autorId], references: [id])
+  amens         Amem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("testemunhos")
+}
+
+model Amem {
+  id            String      @id @default(uuid())
+  testemunhoId  String
+  testemunho    Testemunho  @relation(fields: [testemunhoId], references: [id])
+  usuarioId     String
+  usuario       Usuario     @relation(fields: [usuarioId], references: [id])
+  createdAt     DateTime    @default(now())
+
+  @@unique([testemunhoId, usuarioId])
+  @@map("amens")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Categoria {
+  CURA
+  PROVISAO
+  SALVACAO
+  LIBERTACAO
+  FAMILIA
+  MINISTERIO
+  OUTRO
+}
+
