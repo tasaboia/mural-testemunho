@@ -33,30 +33,6 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Set environment variables on Azure
-      uses: Azure/appservice-settings@v1
-      with:
-        app-name: mural-testemunhos  # substitua pelo nome exato do seu App Service
-        app-settings-json: |
-          [
-            {
-              "name": "DATABASE_URL",
-              "value": "${{ secrets.DATABASE_URL }}"
-            },
-            {
-              "name": "JWT_SECRET",
-              "value": "${{ secrets.JWT_SECRET }}"
-            },
-            {
-              "name": "PORT",
-              "value": "3002"
-            },
-            {
-              "name": "NODE_ENV",
-              "value": "production"
-            }
-          ]
-
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
