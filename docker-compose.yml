@@ -6,10 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "3001:3001"
     environment:
       - NODE_ENV=production
-      - PORT=3002
+      - PORT=3001
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
     restart: always 
