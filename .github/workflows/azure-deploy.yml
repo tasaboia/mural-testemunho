@@ -29,15 +29,20 @@ jobs:
           echo "NEXTAUTH_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "NODE_ENV=production" >> .env
 
-      - name: Construir e publicar imagem Docker
+      - name: Construir e publicar imagem Docker com tag do commit
         run: |
           docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
           docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      # 🔧 [ADICIONADO] Também publica a imagem com a tag 'latest' para uso no Azure App Service
+      - name: Construir e publicar imagem Docker com tag 'latest'
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:latest .
+          docker push ghcr.io/${{ github.repository }}:latest
 
       - name: Deploy Azure Web App (container) usando Publish Profile
         uses: azure/webapps-deploy@v3
         with:
           app-name: mural-testemunhos
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          images: 'ghcr.io/tasaboia/mural-testemunhos:${{ github.sha }}'
- 
+          images: "ghcr.io/tasaboia/mural-testemunhos:latest"
