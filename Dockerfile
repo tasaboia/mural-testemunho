@@ -1,25 +1,32 @@
 # Etapa de build
-FROM node:22-alpine AS builder
+FROM node:18-alpine as builder
 WORKDIR /app
 
+# Primeiro copiamos os arquivos de configuração
 COPY package*.json ./
 COPY tsconfig*.json ./
-COPY prisma ./prisma/
-COPY src ./src/
 
+# Instalamos as dependências
 RUN npm install
-RUN npx prisma generate
-RUN npm run build  
 
-# Etapa final
-FROM node:22-alpine AS runner
+# Depois copiamos o resto dos arquivos
+COPY . .
+
+# Geramos o Prisma Client e fazemos o build
+RUN npx prisma generate
+RUN npm run build
+RUN ls -la /app/dist
+RUN cat /app/dist/main.js || echo "main.js não existe!"
+
+# Stage de produção
+FROM node:18-alpine
 WORKDIR /app
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
+# Copiamos apenas o necessário do stage de build
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 
-EXPOSE 3000
-
-CMD ["node", "dist/main.js"]  # ← o container vai rodar isso pra iniciar o app
+# Comando para iniciar a aplicação
+CMD ["node", "dist/main.js"] 
