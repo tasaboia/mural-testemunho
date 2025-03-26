@@ -8,6 +8,7 @@ import { AuthController } from "./auth.controller"
 
 @Module({
   imports: [
+    ConfigModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

@@ -1,40 +1,40 @@
-name: Deploy to Azure
+name: Deploy NestJS Docker Azure Web App
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy-to-azure:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout código
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Fazer login no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create .env file
-      run: |
-        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-        echo "PORT=3001" >> .env
-        echo "NODE_ENV=production" >> .env
+      - name: Criar arquivo .env a partir das Secrets
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "NEXTAUTH_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "NODE_ENV=production" >> .env
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Construir e publicar imagem Docker
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
 
-    - name: Generate Prisma Client
-      run: npx prisma generate
-
-    - name: Build
-      run: npm run build
-
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
-      with:
-        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-        package: .
+      - name: Deploy Azure Web App (container) usando Publish Profile
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: mural-testemunhos
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: 'ghcr.io/${{ github.repository }}:${{ github.sha }}'
+ 

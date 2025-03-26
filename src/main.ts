@@ -1,42 +1,20 @@
-import { NestFactory } from "@nestjs/core"
-import { ValidationPipe } from "@nestjs/common"
-import { AppModule } from "./app.module"
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger"
-
-import * as dotenv from 'dotenv'
-dotenv.config()
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
 
-  // Enable CORS
-  app.enableCors()
+  app.setGlobalPrefix('api');
+  
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    credentials: true,
+  });
 
-  // Set global prefix
-  app.setGlobalPrefix('api')
-
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  )
-
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle("Testimonials Board API")
-    .setDescription("API for the Community Testimonials Board")
-    .setVersion("1.0")
-    .addBearerAuth()
-    .build()
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup("docs", app, document)
-
-  const port = process.env.PORT || 3002
-  await app.listen(port)
-  console.log(`Application is running on: ${await app.getUrl()}`)
+  const PORT = process.env.PORT || 3000;
+  await app.listen(PORT);
+  logger.log(`🚀 Backend rodando em http://localhost:${PORT}`);
 }
-bootstrap()
-
+bootstrap();
