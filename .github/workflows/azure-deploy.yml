@@ -39,5 +39,5 @@ jobs:
         with:
           app-name: mural-testemunhos
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          images: 'ghcr.io/${{ github.repository }}:${{ github.sha }}'
+          images: 'ghcr.io/tasaboia/mural-testemunhos:${{ github.sha }}'
  
