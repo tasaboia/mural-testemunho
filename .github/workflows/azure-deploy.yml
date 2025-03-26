@@ -45,4 +45,4 @@ jobs:
         with:
           app-name: mural-testemunhos
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          images: "ghcr.io/tasaboia/mural-testemunhos:latest"
+          images: "ghcr.io/tasaboia/mural-testemunho:latest"
