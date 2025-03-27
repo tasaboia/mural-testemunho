@@ -8,12 +8,17 @@ async function bootstrap() {
 
   app.setGlobalPrefix("api");
 
+  // app.enableCors({
+  //   origin: process.env.FRONTEND_URL || "http://localhost:3001",
+  //   credentials: true,
+  // });
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3001",
+    origin: "*", //em teste
     credentials: true,
   });
 
   await app.listen(process.env.PORT);
-  logger.log(`🚀 Backend rodando !`);
+  logger.log(`🚀 Backend rodando na porta ${process.env.PORT} !`);
 }
 bootstrap();
