@@ -1,148 +1,139 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
-import { PrismaService } from "../prisma/prisma.service"
-import type { UpdateTestimonialDto } from "./dto/update-testimonial.dto"
-import { CreateTestimonialDto } from "./dto/create-testimonial.dto"
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class TestimonialsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.testemunho.findMany({
+    return this.prisma.testimony.findMany({
       where: {
-        aprovado: true,
+        approved: true,
       },
       include: {
-        autor: {
+        author: {
           select: {
             id: true,
-            nome: true,
-            imagemPerfil: true,
+            name: true,
+            profileImage: true,
           },
         },
         _count: {
           select: {
-            amens: true,
+            likes: true,
           },
         },
       },
       orderBy: {
         createdAt: "desc",
       },
-    })
+    });
   }
 
   async findOne(id: string) {
-    const testimonial = await this.prisma.testemunho.findUnique({
+    const testimonial = await this.prisma.testimony.findUnique({
       where: { id },
       include: {
-        autor: {
+        author: {
           select: {
             id: true,
-            nome: true,
-            imagemPerfil: true,
+            name: true,
+            profileImage: true,
           },
         },
         _count: {
           select: {
-            amens: true,
+            likes: true,
           },
         },
       },
-    })
+    });
 
-    if (!testimonial || !testimonial.aprovado) {
-      throw new NotFoundException(`Testemunho com ID ${id} não encontrado`)
+    if (!testimonial || !testimonial.approved) {
+      throw new NotFoundException(`Testemunho com ID ${id} não encontrado`);
     }
 
-    return testimonial
+    return testimonial;
   }
 
-  async create(createTestimonialDto: CreateTestimonialDto, userId: string) {
-    return this.prisma.testemunho.create({
+  async create(createTestimonialDto: any, userId: string) {
+    return this.prisma.testimony.create({
       data: {
         ...createTestimonialDto,
-        autorId: createTestimonialDto.anonimo ? null : userId,
+        authorId: createTestimonialDto.anonymous ? null : userId,
       },
-    })
+    });
   }
 
-  async update(id: string, updateTestimonialDto: UpdateTestimonialDto) {
-    const testimonial = await this.prisma.testemunho.findUnique({
+  async update(id: string, updateTestimonialDto: any) {
+    const testimonial = await this.prisma.testimony.findUnique({
       where: { id },
-    })
+    });
 
     if (!testimonial) {
-      throw new NotFoundException(`Testemunho com ID ${id} não encontrado`)
+      throw new NotFoundException(`Testemunho com ID ${id} não encontrado`);
     }
 
-    return this.prisma.testemunho.update({
+    return this.prisma.testimony.update({
       where: { id },
       data: updateTestimonialDto,
-    })
+    });
   }
 
-  async like(testimonialId: string, userId: string) {
-    const testimonial = await this.prisma.testemunho.findUnique({
-      where: { id: testimonialId },
-    })
+  async like(testimonyId: string, userId: string) {
+    const testimonial = await this.prisma.testimony.findUnique({
+      where: { id: testimonyId },
+    });
 
     if (!testimonial) {
-      throw new NotFoundException(`Testemunho com ID ${testimonialId} não encontrado`)
+      throw new NotFoundException(
+        `Testemunho com ID ${testimonyId} não encontrado`
+      );
     }
 
     // Verificar se o usuário já deu um amém neste testemunho
-    const existingAmen = await this.prisma.amem.findUnique({
+    const existingAmen = await this.prisma.like.findUnique({
       where: {
-        testemunhoId_usuarioId: {
-          testemunhoId: testimonialId,
-          usuarioId: userId,
+        testimonyId_userId: {
+          testimonyId,
+          userId,
         },
       },
-    })
+    });
 
     if (existingAmen) {
-      // Se já existe, remove o amém (toggle)
-      await this.prisma.amem.delete({
+      await this.prisma.like.delete({
         where: {
           id: existingAmen.id,
         },
-      })
+      });
 
-      return { message: "Amém removido com sucesso" }
+      return { message: "Amém removido com sucesso" };
     }
 
-    // Se não existe, cria um novo amém
-    await this.prisma.amem.create({
+    await this.prisma.like.create({
       data: {
-        testemunhoId: testimonialId,
-        usuarioId: userId,
+        testimonyId,
+        userId,
       },
-    })
+    });
 
-    return { message: "Amém registrado com sucesso" }
+    return { message: "Amém registrado com sucesso" };
   }
 
   async findAllForAdmin() {
-    return this.prisma.testemunho.findMany({
+    return this.prisma.testimony.findMany({
       include: {
-        autor: {
-          select: {
-            id: true,
-            nome: true,
-            email: true,
-            imagemPerfil: true,
-          },
-        },
+        author: true,
         _count: {
           select: {
-            amens: true,
+            likes: true,
           },
         },
       },
       orderBy: {
         createdAt: "desc",
       },
-    })
+    });
   }
-} 
+}

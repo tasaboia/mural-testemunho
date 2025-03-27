@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,46 +7,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Usuario {
+model User {
   id            String        @id @default(uuid())
   email         String        @unique
-  nome          String
-  imagemPerfil  String?
+  name          String
+  profileImage  String?
   role          Role          @default(USER)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  testemunhos   Testemunho[]
-  amens         Amem[]
+  testimonies   Testimony[]  
+  likes         Like[]       
 
-  @@map("usuarios")
+  @@map("user")
 }
 
-model Testemunho {
+model Testimony {
   id            String        @id @default(uuid())
-  titulo        String
-  conteudo      String
-  anonimo       Boolean       @default(false)
-  aprovado      Boolean       @default(false)
-  categoria     Categoria
-  autorId       String?
-  autor         Usuario?      @relation(fields: [autorId], references: [id])
-  amens         Amem[]
+  title         String
+  content       String
+  anonymous     Boolean       @default(false)
+  approved      Boolean       @default(false)
+  category      Category
+  authorId      String?
+  author        User?         @relation(fields: [authorId], references: [id])
+  likes         Like[]       
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  @@map("testemunhos")
+  @@map("testimony")
 }
 
-model Amem {
+model Like {
   id            String      @id @default(uuid())
-  testemunhoId  String
-  testemunho    Testemunho  @relation(fields: [testemunhoId], references: [id])
-  usuarioId     String
-  usuario       Usuario     @relation(fields: [usuarioId], references: [id])
-  createdAt     DateTime    @default(now())
+  testimonyId   String
+  testimony     Testimony  @relation(fields: [testimonyId], references: [id])
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  createdAt     DateTime   @default(now())
 
-  @@unique([testemunhoId, usuarioId])
-  @@map("amens")
+  @@unique([testimonyId, userId])
+  @@map("like")
 }
 
 enum Role {
@@ -57,13 +54,12 @@ enum Role {
   ADMIN
 }
 
-enum Categoria {
-  CURA
-  PROVISAO
-  SALVACAO
-  LIBERTACAO
-  FAMILIA
-  MINISTERIO
-  OUTRO
+enum Category {
+  HEALING
+  PROVISION
+  SALVATION
+  DELIVERANCE
+  FAMILY
+  MINISTRY
+  OTHER
 }
-
