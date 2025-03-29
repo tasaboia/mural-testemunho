@@ -80,37 +80,52 @@ export class TestimonialsService {
     });
   }
 
-  async like(testimonyId: string, userId: string) {
-    const testimonial = await this.prisma.testimony.findUnique({
+  async like(testimonyId: string, userId?: string) {
+    // Primeiro, verifica se o testemunho existe
+    const testimony = await this.prisma.testimony.findUnique({
       where: { id: testimonyId },
+      include: {
+        _count: {
+          select: { likes: true }
+        }
+      }
     });
 
-    if (!testimonial) {
-      throw new NotFoundException(
-        `Testemunho com ID ${testimonyId} não encontrado`
-      );
+    if (!testimony) {
+      throw new NotFoundException(`Testimony with ID ${testimonyId} not found`);
     }
 
-    // Verificar se o usuário já deu um amém neste testemunho
-    const existingAmen = await this.prisma.like.findUnique({
+    // Se não tiver userId, apenas retorna a contagem atual
+    if (!userId) {
+      return {
+        likes: testimony._count.likes,
+        message: "Current like count"
+      };
+    }
+
+    // Se tiver userId, procura se já existe um like
+    const existingLike = await this.prisma.like.findFirst({
       where: {
-        testimonyId_userId: {
-          testimonyId,
-          userId,
-        },
+        userId,
+        testimonyId,
       },
     });
 
-    if (existingAmen) {
+    if (existingLike) {
+      // Remove o like se já existir
       await this.prisma.like.delete({
         where: {
-          id: existingAmen.id,
+          id: existingLike.id,
         },
       });
 
-      return { message: "Amém removido com sucesso" };
+      return { 
+        message: "Like removed successfully",
+        likes: testimony._count.likes - 1
+      };
     }
 
+    // Adiciona um novo like
     await this.prisma.like.create({
       data: {
         testimonyId,
@@ -118,7 +133,10 @@ export class TestimonialsService {
       },
     });
 
-    return { message: "Amém registrado com sucesso" };
+    return { 
+      message: "Like added successfully",
+      likes: testimony._count.likes + 1
+    };
   }
 
   async findAllForAdmin() {

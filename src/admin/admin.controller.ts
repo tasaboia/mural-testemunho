@@ -1,9 +1,5 @@
 import { Controller, Get, Put, Body, Param, UseGuards } from "@nestjs/common";
 import { TestimonialsService } from "../testimonials/testimonials.service";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { RolesGuard } from "../auth/guards/roles.guard";
-import { Roles } from "../auth/decorators/roles.decorator";
-import { Role } from "@prisma/client";
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -13,8 +9,6 @@ import {
 
 @ApiTags("admin")
 @Controller("admin/testimonials")
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN)
 @ApiBearerAuth()
 export class AdminController {
   constructor(private readonly testimonialsService: TestimonialsService) {}

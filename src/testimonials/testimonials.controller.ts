@@ -5,17 +5,10 @@ import {
   Body,
   Param,
   Put,
-  UseGuards,
   Request,
 } from "@nestjs/common";
 import { TestimonialsService } from "./testimonials.service";
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from "@nestjs/swagger";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("testimonials")
 @Controller("testimonials")
@@ -41,21 +34,20 @@ export class TestimonialsController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Create a new testimonial" })
   @ApiResponse({ status: 201, description: "Testimonial created successfully" })
   async create(@Request() req, @Body() createTestimonialDto: any) {
     return this.testimonialsService.create(createTestimonialDto, req.user.id);
   }
 
-  @Put(":id/like")
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Give an "Amen" to a testimonial' })
-  @ApiResponse({ status: 200, description: "Amen registered successfully" })
-  @ApiResponse({ status: 404, description: "Testimonial not found" })
-  async like(@Param("id") id: string, @Request() req) {
-    return this.testimonialsService.like(id, req.user.id);
+  @Post(":id/like")
+  @ApiOperation({ summary: 'Like a testimony' })
+  @ApiResponse({ status: 200, description: 'Like registered successfully' })
+  @ApiResponse({ status: 404, description: 'Testimony not found' })
+  async like(
+    @Param('id') id: string,
+    @Body() body: { userId?: string } = {} // Valor padrão para evitar undefined
+  ) {
+    return this.testimonialsService.like(id, body?.userId);
   }
 }
